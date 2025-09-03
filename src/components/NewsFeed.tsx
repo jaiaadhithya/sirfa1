@@ -1,56 +1,125 @@
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, ExternalLink, TrendingUp, TrendingDown, AlertTriangle } from "lucide-react";
+import { Clock, ExternalLink, TrendingUp, TrendingDown, AlertTriangle, RefreshCw } from "lucide-react";
 
-const newsItems = [
-  {
-    id: 1,
-    title: "Federal Reserve Signals Potential Rate Cut in Q4 2024",
-    summary: "Fed Chairman suggests monetary policy adjustments may be necessary to support economic growth amid cooling inflation data.",
-    source: "Reuters",
-    timestamp: "2 hours ago",
-    category: "Monetary Policy",
-    sentiment: "positive",
-    impact: "high",
-    relevantTickers: ["SPY", "QQQ", "TLT"]
-  },
-  {
-    id: 2,
-    title: "Apple Reports Record Q3 Revenue Despite Supply Chain Challenges",
-    summary: "Tech giant beats earnings expectations with strong iPhone and services growth, stock up 3.2% in after-hours trading.",
-    source: "Bloomberg", 
-    timestamp: "4 hours ago",
-    category: "Earnings",
-    sentiment: "positive",
-    impact: "medium",
-    relevantTickers: ["AAPL"]
-  },
-  {
-    id: 3,
-    title: "Oil Prices Surge 5% on Middle East Tensions",
-    summary: "Crude oil futures jump amid geopolitical concerns, energy sector leads market gains as investors seek inflation hedges.",
-    source: "Wall Street Journal",
-    timestamp: "6 hours ago", 
-    category: "Commodities",
-    sentiment: "neutral",
-    impact: "high",
-    relevantTickers: ["XOM", "CVX", "USO"]
-  },
-  {
-    id: 4,
-    title: "Tesla Faces Production Delays at Berlin Gigafactory",
-    summary: "Electric vehicle manufacturer reports temporary slowdown in European operations due to supply chain disruptions.",
-    source: "Financial Times",
-    timestamp: "8 hours ago",
-    category: "Corporate",
-    sentiment: "negative", 
-    impact: "medium",
-    relevantTickers: ["TSLA"]
-  }
-];
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+
+interface NewsItem {
+  id: string;
+  title: string;
+  summary: string;
+  source: string;
+  timestamp: string;
+  category: string;
+  sentiment: 'positive' | 'negative' | 'neutral';
+  impact: 'high' | 'medium' | 'low';
+  relevantTickers: string[];
+  url?: string;
+}
 
 export const NewsFeed = () => {
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchNews = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch(`${API_BASE_URL}/news`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch news data');
+      }
+      
+      const newsData = await response.json();
+      setNewsItems(newsData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNews();
+    // Refresh news every 5 minutes
+    const interval = setInterval(fetchNews, 300000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatTimestamp = (timestamp: string) => {
+    try {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+      
+      if (diffInHours < 1) {
+        const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+        return `${diffInMinutes} minutes ago`;
+      } else if (diffInHours < 24) {
+        return `${diffInHours} hours ago`;
+      } else {
+        return date.toLocaleDateString();
+      }
+    } catch {
+      return timestamp;
+    }
+  };
+
+  if (loading && newsItems.length === 0) {
+    return (
+      <Card className="h-full">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              Market News
+            </CardTitle>
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900"></div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-full mb-1"></div>
+                <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="h-full">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              Market News
+            </CardTitle>
+            <Button onClick={fetchNews} variant="outline" size="sm">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-red-600">
+            <p className="font-medium">Failed to load news</p>
+            <p className="text-sm mt-1">{error}</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
   const getSentimentIcon = (sentiment: string) => {
     switch (sentiment) {
       case 'positive':
@@ -76,12 +145,21 @@ export const NewsFeed = () => {
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>Market News & Analysis</span>
-          <Badge variant="secondary" className="text-xs">
-            Live Updates
-          </Badge>
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5" />
+            Market News & Analysis
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs">
+              Live Updates
+            </Badge>
+            <Button onClick={fetchNews} variant="outline" size="sm" disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
@@ -98,7 +176,7 @@ export const NewsFeed = () => {
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Clock className="h-3 w-3" />
-                    {item.timestamp}
+                    {formatTimestamp(item.timestamp)}
                   </div>
                 </div>
 
@@ -120,9 +198,16 @@ export const NewsFeed = () => {
                       {item.category}
                     </Badge>
                   </div>
-                  <Button variant="ghost" size="sm" className="h-8 px-2">
-                    <ExternalLink className="h-3 w-3" />
-                  </Button>
+                  {item.url && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 px-2"
+                      onClick={() => window.open(item.url, '_blank')}
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                  )}
                 </div>
 
                 {/* Relevant Tickers */}

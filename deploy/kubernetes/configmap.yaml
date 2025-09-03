@@ -1,0 +1,205 @@
+# SIRFA Agent Finance - Kubernetes ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sirfa-config
+  namespace: sirfa-finance
+  labels:
+    app: sirfa-finance
+    component: config
+data:
+  # Application Configuration
+  NODE_ENV: "production"
+  API_BASE_URL: "https://api.sirfa.com"
+  FRONTEND_URL: "https://sirfa.com"
+  CORS_ORIGIN: "https://sirfa.com"
+  
+  # Alibaba Cloud Configuration
+  alibaba-region: "ap-southeast-1"
+  alibaba-account-id: "your-account-id"
+  ALIBABA_CLOUD_REGION: "ap-southeast-1"
+  ALIBABA_CLOUD_ACCOUNT_ID: "your-account-id"
+  
+  # Function Compute Configuration
+  FC_SERVICE_NAME: "sirfa-trading-service"
+  FC_FUNCTION_NAME: "trading-decision-engine"
+  FC_API_VERSION: "2016-08-15"
+  
+  # OSS Configuration
+  OSS_REGION: "ap-southeast-1"
+  OSS_BUCKET: "sirfa-app-storage-prod"
+  OSS_ENDPOINT: "https://oss-ap-southeast-1.aliyuncs.com"
+  OSS_INTERNAL_ENDPOINT: "https://oss-ap-southeast-1-internal.aliyuncs.com"
+  
+  # Log Service Configuration
+  LOG_PROJECT: "sirfa-app-logs-prod"
+  LOG_STORE: "app-log-store"
+  LOG_LEVEL: "info"
+  LOG_MAX_FILES: "30"
+  LOG_MAX_SIZE: "100m"
+  
+  # Alpaca Configuration
+  alpaca-base-url: "https://paper-api.alpaca.markets"
+  ALPACA_BASE_URL: "https://paper-api.alpaca.markets"
+  ALPACA_DATA_URL: "https://data.alpaca.markets"
+  ALPACA_STREAM_URL: "wss://stream.data.alpaca.markets"
+  
+  # Yahoo Finance Configuration
+  YAHOO_FINANCE_BASE_URL: "https://yfapi.net"
+  YAHOO_FINANCE_RATE_LIMIT: "100"
+  
+  # Redis Configuration (Optional)
+  redis-host: "sirfa-redis-service"
+  redis-port: "6379"
+  REDIS_HOST: "sirfa-redis-service"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  REDIS_TTL: "3600"
+  
+  # Rate Limiting Configuration
+  RATE_LIMIT_WINDOW_MS: "900000"
+  RATE_LIMIT_MAX_REQUESTS: "100"
+  RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS: "false"
+  
+  # WebSocket Configuration
+  WS_HEARTBEAT_INTERVAL: "30000"
+  WS_MAX_CONNECTIONS: "1000"
+  
+  # Trading Configuration
+  TRADING_ENABLED: "true"
+  MAX_POSITION_SIZE: "10000"
+  RISK_MANAGEMENT_ENABLED: "true"
+  STOP_LOSS_PERCENTAGE: "5"
+  TAKE_PROFIT_PERCENTAGE: "10"
+  
+  # AI Agent Configuration
+  AI_DECISION_TIMEOUT: "30000"
+  AI_CONFIDENCE_THRESHOLD: "0.7"
+  AI_MAX_RETRIES: "3"
+  
+  # News Feed Configuration
+  NEWS_REFRESH_INTERVAL: "300000"
+  NEWS_MAX_ARTICLES: "100"
+  NEWS_SENTIMENT_ENABLED: "true"
+  
+  # Portfolio Configuration
+  PORTFOLIO_REFRESH_INTERVAL: "30000"
+  PORTFOLIO_CACHE_TTL: "60"
+  
+  # Monitoring Configuration
+  HEALTH_CHECK_INTERVAL: "30000"
+  METRICS_ENABLED: "true"
+  
+  # Performance Configuration
+  CLUSTER_MODE: "true"
+  WORKER_PROCESSES: "0"
+  MAX_MEMORY_USAGE: "512"
+  
+  # Feature Flags
+  FEATURE_REAL_TRADING: "false"
+  FEATURE_ADVANCED_ANALYTICS: "true"
+  FEATURE_SOCIAL_TRADING: "false"
+  FEATURE_MOBILE_NOTIFICATIONS: "true"
+  FEATURE_DEBUG_MODE: "false"
+  FEATURE_MOCK_DATA: "false"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sirfa-app-config
+  namespace: sirfa-finance
+  labels:
+    app: sirfa-finance
+    component: app-config
+data:
+  app.json: |
+    {
+      "name": "SIRFA Agent Finance",
+      "version": "1.0.0",
+      "description": "AI-powered trading platform with Alibaba Cloud integration",
+      "environment": "production",
+      "features": {
+        "realTrading": false,
+        "advancedAnalytics": true,
+        "socialTrading": false,
+        "mobileNotifications": true
+      },
+      "trading": {
+        "maxPositionSize": 10000,
+        "riskManagement": true,
+        "stopLoss": 5,
+        "takeProfit": 10
+      },
+      "ai": {
+        "confidenceThreshold": 0.7,
+        "maxRetries": 3,
+        "timeout": 30000
+      }
+    }
+  
+  nginx.conf: |
+    upstream backend {
+        server sirfa-backend-service:80;
+    }
+    
+    server {
+        listen 80;
+        server_name _;
+        
+        # Security headers
+        add_header X-Frame-Options DENY;
+        add_header X-Content-Type-Options nosniff;
+        add_header X-XSS-Protection "1; mode=block";
+        add_header Referrer-Policy "strict-origin-when-cross-origin";
+        
+        # Gzip compression
+        gzip on;
+        gzip_vary on;
+        gzip_min_length 1024;
+        gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json;
+        
+        # API proxy
+        location /api/ {
+            proxy_pass http://backend/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_connect_timeout 30s;
+            proxy_send_timeout 30s;
+            proxy_read_timeout 30s;
+        }
+        
+        # WebSocket proxy
+        location /ws/ {
+            proxy_pass http://sirfa-backend-service:3002/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+        
+        # Health check
+        location /health {
+            access_log off;
+            return 200 "healthy\n";
+            add_header Content-Type text/plain;
+        }
+        
+        # Static files
+        location / {
+            root /usr/share/nginx/html;
+            index index.html index.htm;
+            try_files $uri $uri/ /index.html;
+            
+            # Cache static assets
+            location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+                expires 1y;
+                add_header Cache-Control "public, immutable";
+            }
+        }
+    }

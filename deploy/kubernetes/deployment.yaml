@@ -1,0 +1,309 @@
+# SIRFA Agent Finance - Kubernetes Deployment Configuration
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sirfa-backend
+  namespace: sirfa-finance
+  labels:
+    app: sirfa-backend
+    version: v1.0.0
+    component: api
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: sirfa-backend
+  template:
+    metadata:
+      labels:
+        app: sirfa-backend
+        version: v1.0.0
+        component: api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: sirfa-backend
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: sirfa-backend
+        image: sirfa/backend:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3001
+          protocol: TCP
+        - name: websocket
+          containerPort: 3002
+          protocol: TCP
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3001"
+        - name: WS_PORT
+          value: "3002"
+        - name: METRICS_PORT
+          value: "9090"
+        # Database Configuration
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: sirfa-database-secret
+              key: host
+        - name: DB_PORT
+          valueFrom:
+            secretKeyRef:
+              name: sirfa-database-secret
+              key: port
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: sirfa-database-secret
+              key: database
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: sirfa-database-secret
+              key: username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: sirfa-database-secret
+              key: password
+        # Alibaba Cloud Configuration
+        - name: ALIBABA_CLOUD_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: sirfa-alibaba-secret
+              key: access-key-id
+        - name: ALIBABA_CLOUD_ACCESS_KEY_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: sirfa-alibaba-secret
+              key: access-key-secret
+        - name: ALIBABA_CLOUD_REGION
+          valueFrom:
+            configMapKeyRef:
+              name: sirfa-config
+              key: alibaba-region
+        - name: ALIBABA_CLOUD_ACCOUNT_ID
+          valueFrom:
+            configMapKeyRef:
+              name: sirfa-config
+              key: alibaba-account-id
+        # Alpaca Configuration
+        - name: ALPACA_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: sirfa-alpaca-secret
+              key: api-key
+        - name: ALPACA_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: sirfa-alpaca-secret
+              key: secret-key
+        - name: ALPACA_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: sirfa-config
+              key: alpaca-base-url
+        # Yahoo Finance Configuration
+        - name: YAHOO_FINANCE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: sirfa-yahoo-secret
+              key: api-key
+        # Security Configuration
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: sirfa-security-secret
+              key: jwt-secret
+        - name: ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: sirfa-security-secret
+              key: encryption-key
+        - name: SESSION_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: sirfa-security-secret
+              key: session-secret
+        # Redis Configuration (Optional)
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: sirfa-config
+              key: redis-host
+              optional: true
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: sirfa-config
+              key: redis-port
+              optional: true
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: sirfa-redis-secret
+              key: password
+              optional: true
+        envFrom:
+        - configMapRef:
+            name: sirfa-config
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config
+          readOnly: true
+        - name: logs-volume
+          mountPath: /app/logs
+      volumes:
+      - name: config-volume
+        configMap:
+          name: sirfa-app-config
+      - name: logs-volume
+        emptyDir: {}
+      nodeSelector:
+        kubernetes.io/os: linux
+      tolerations:
+      - key: "node.kubernetes.io/not-ready"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+      - key: "node.kubernetes.io/unreachable"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - sirfa-backend
+              topologyKey: kubernetes.io/hostname
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sirfa-backend-service
+  namespace: sirfa-finance
+  labels:
+    app: sirfa-backend
+    component: api
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
+  - name: websocket
+    port: 3002
+    targetPort: websocket
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app: sirfa-backend
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sirfa-backend
+  namespace: sirfa-finance
+  labels:
+    app: sirfa-backend
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: sirfa-backend-network-policy
+  namespace: sirfa-finance
+spec:
+  podSelector:
+    matchLabels:
+      app: sirfa-backend
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: sirfa-finance
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 3001
+    - protocol: TCP
+      port: 3002
+  egress:
+  - {} # Allow all egress traffic
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: sirfa-backend-pdb
+  namespace: sirfa-finance
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: sirfa-backend

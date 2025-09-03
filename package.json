@@ -1,14 +1,22 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "sirfa-agent-finance",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "SIRFA Agent Finance - AI-powered trading platform with real-time analysis",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "build:prod": "vite build --mode production",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "build:all": "cd frontend && npm run build && cd ../backend && npm install --production",
+    "deploy:alibaba": "bash deploy-alibaba-cloud.sh",
+    "deploy:alibaba:windows": "powershell -ExecutionPolicy Bypass -File deploy-alibaba-cloud.ps1",
+    "test": "cd backend && npm test",
+    "start:prod": "cd backend && npm start"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

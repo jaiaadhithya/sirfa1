@@ -1,0 +1,48 @@
+# Alibaba Cloud Configuration
+# Copy this file to terraform.tfvars and fill in your actual values
+
+# Required: Alibaba Cloud credentials
+access_key = "your-access-key-id"
+secret_key = "your-secret-access-key"
+account_id = "your-account-id"
+
+# Optional: Region configuration
+region = "ap-southeast-1"  # Singapore region
+
+# Environment configuration
+environment = "dev"  # dev, staging, or prod
+project_name = "sirfa-agent-finance"
+
+# Database configuration
+db_username = "sirfa_admin"
+db_password = "your-secure-database-password"  # Use a strong password
+db_instance_class = "mysql.n2.serverless.1c"  # Serverless MySQL for cost efficiency
+
+# ECS configuration
+instance_type = "ecs.t6-c1m2.large"  # 2 vCPU, 4GB RAM
+system_disk_size = 40  # GB
+
+# Function Compute configuration
+fc_memory_size = 512  # MB
+fc_timeout = 60  # seconds
+
+# Optional: Domain and SSL configuration
+# domain_name = "your-domain.com"
+# ssl_certificate_id = "your-ssl-cert-id"
+
+# Monitoring and logging
+log_retention_days = 30
+enable_monitoring = true
+
+# Backup configuration
+backup_retention_period = 7  # days
+preferred_backup_time = "02:00-03:00"  # UTC time
+
+# Resource tags
+common_tags = {
+  Project     = "sirfa-agent-finance"
+  Owner       = "sirfa-team"
+  Environment = "dev"
+  ManagedBy   = "terraform"
+  CostCenter  = "engineering"
+}
