@@ -32,7 +32,10 @@ ALPACA_API_KEY=your_alpaca_key
 ALPACA_SECRET_KEY=your_alpaca_secret
 ALPACA_BASE_URL=https://paper-api.alpaca.markets
 
-# News API Keys
+# News API Configuration
+THE_NEWS_API_KEY=your_the_news_api_key
+
+# Legacy News API Keys (Optional)
 ALPHA_VANTAGE_API_KEY=your_alpha_vantage_key
 FINNHUB_API_KEY=your_finnhub_key
 NEWS_API_KEY=your_news_api_key
@@ -45,7 +48,8 @@ POLYGON_API_KEY=your_polygon_key
 VITE_API_URL=https://your-domain.com/api
 VITE_WS_URL=wss://your-domain.com/ws
 
-# News Plugin API Keys
+# News is now handled by backend - no frontend API keys needed
+# Legacy News Plugin API Keys (Optional - only if using NewsPlugin component)
 REACT_APP_ALPHA_VANTAGE_API_KEY=your_alpha_vantage_key
 REACT_APP_FINNHUB_API_KEY=your_finnhub_key
 REACT_APP_NEWS_API_KEY=your_news_api_key
@@ -65,10 +69,12 @@ VITE_ENABLE_NOTIFICATIONS=true
   - Secret Key
 
 #### News APIs
-- [ ] **Alpha Vantage** - Get key from [alphavantage.co](https://www.alphavantage.co/support/#api-key)
-- [ ] **Finnhub** - Get key from [finnhub.io](https://finnhub.io/register)
-- [ ] **NewsAPI** - Get key from [newsapi.org](https://newsapi.org/register)
-- [ ] **Polygon.io** - Get key from [polygon.io](https://polygon.io/)
+- [ ] **The News API** - Get key from [thenewsapi.com](https://www.thenewsapi.com/) (Primary news source)
+- [ ] **Legacy News APIs** (Optional - for fallback):
+  - [ ] **Alpha Vantage** - Get key from [alphavantage.co](https://www.alphavantage.co/support/#api-key)
+  - [ ] **Finnhub** - Get key from [finnhub.io](https://finnhub.io/register)
+  - [ ] **NewsAPI** - Get key from [newsapi.org](https://newsapi.org/register)
+  - [ ] **Polygon.io** - Get key from [polygon.io](https://polygon.io/)
 
 #### Alibaba Cloud Services
 - [ ] **PAI (Platform for AI)** - For QWEN model deployment

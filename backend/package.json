@@ -19,8 +19,7 @@
     "express-rate-limit": "^7.1.5",
     "helmet": "^7.1.0",
     "node-cron": "^3.0.3",
-    "ws": "^8.14.2",
-    "yahoo-finance2": "^2.11.2"
+    "ws": "^8.14.2"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

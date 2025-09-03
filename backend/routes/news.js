@@ -1,6 +1,5 @@
 const express = require('express');
 const axios = require('axios');
-const yahooFinance = require('yahoo-finance2').default;
 const router = express.Router();
 
 // Cache for news data (in production, use Redis)
@@ -34,7 +33,7 @@ const determineImpact = (title, summary) => {
   return Math.random() > 0.5 ? 'medium' : 'low';
 };
 
-// Get market news from Yahoo Finance
+// Get market news from The News API
 router.get('/', async (req, res) => {
   try {
     // Check cache first
@@ -43,34 +42,8 @@ router.get('/', async (req, res) => {
       return res.json(newsCache.data);
     }
 
-    // Fetch news from Yahoo Finance
-    const newsData = await yahooFinance.search('market news', {
-      newsCount: 20
-    });
-
-    // If Yahoo Finance doesn't work, try alternative approach
-    let newsItems = [];
-    
-    if (newsData && newsData.news && newsData.news.length > 0) {
-      newsItems = newsData.news.map((item, index) => ({
-        id: index + 1,
-        title: item.title,
-        summary: item.summary || item.title,
-        source: item.publisher || 'Yahoo Finance',
-        timestamp: item.providerPublishTime ? 
-          new Date(item.providerPublishTime * 1000).toLocaleString() : 
-          'Recently',
-        category: item.type || 'Market News',
-        sentiment: analyzeSentiment(item.title, item.summary || ''),
-        impact: determineImpact(item.title, item.summary || ''),
-        relevantTickers: item.relatedTickers || [],
-        url: item.link
-      }));
-    } else {
-      // Fallback: Fetch general financial news using alternative method
-      const fallbackNews = await fetchFallbackNews();
-      newsItems = fallbackNews;
-    }
+    // Fetch news from The News API
+    const newsItems = await fetchTheNewsAPI();
 
     // Cache the results
     newsCache = {
@@ -85,7 +58,7 @@ router.get('/', async (req, res) => {
     
     // Return fallback news if API fails
     try {
-      const fallbackNews = await fetchFallbackNews();
+      const fallbackNews = await generateSampleNews();
       res.json(fallbackNews);
     } catch (fallbackError) {
       console.error('Fallback news also failed:', fallbackError);
@@ -94,65 +67,170 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Fallback news fetcher using RapidAPI or other sources
-const fetchFallbackNews = async () => {
+// Fetch news from The News API
+const fetchTheNewsAPI = async () => {
   try {
-    // Try RapidAPI Yahoo Finance endpoint
-    if (process.env.YAHOO_FINANCE_API_KEY) {
-      const response = await axios.get('https://yahoo-finance15.p.rapidapi.com/api/yahoo/ne/news', {
-        headers: {
-          'X-RapidAPI-Key': process.env.YAHOO_FINANCE_API_KEY,
-          'X-RapidAPI-Host': process.env.YAHOO_FINANCE_HOST || 'yahoo-finance15.p.rapidapi.com'
-        },
-        params: {
-          symbols: 'AAPL,MSFT,GOOGL,AMZN,TSLA'
+    const apiKey = process.env.THE_NEWS_API_KEY;
+    if (!apiKey) {
+      console.warn('THE_NEWS_API_KEY not configured, using sample news');
+      return generateSampleNews();
+    }
+
+    // Fetch financial headlines from The News API
+    const response = await axios.get('https://api.thenewsapi.com/v1/news/headlines', {
+      params: {
+        api_token: apiKey,
+        language: 'en',
+        locale: 'us',
+        headlines_per_category: 10,
+        include_similar: false
+      },
+      timeout: 10000
+    });
+
+    if (response.data && response.data.data) {
+      // Transform The News API data to our format
+      const newsItems = [];
+      
+      // Process each category
+      Object.keys(response.data.data).forEach(category => {
+        const articles = response.data.data[category];
+        if (Array.isArray(articles)) {
+          articles.forEach((article, index) => {
+            // Filter for finance-related content
+            const isFinanceRelated = isFinancialNews(article.title, article.description);
+            
+            if (isFinanceRelated) {
+              newsItems.push({
+                id: article.uuid || `${category}_${index}`,
+                title: article.title,
+                summary: article.description || article.snippet || article.title.substring(0, 150) + '...',
+                source: article.source || 'The News API',
+                timestamp: formatTimestamp(article.published_at),
+                category: mapCategory(category),
+                sentiment: analyzeSentiment(article.title, article.description || ''),
+                impact: determineImpact(article.title, article.description || ''),
+                relevantTickers: extractTickers(article.title, article.description || ''),
+                url: article.url
+              });
+            }
+          });
         }
       });
-      
-      if (response.data && response.data.body) {
-        return response.data.body.map((item, index) => ({
-          id: index + 1,
-          title: item.title,
-          summary: item.summary || item.title.substring(0, 150) + '...',
-          source: item.publisher || 'Financial News',
-          timestamp: new Date(item.publishedAt || Date.now()).toLocaleString(),
-          category: 'Market News',
-          sentiment: analyzeSentiment(item.title, item.summary || ''),
-          impact: determineImpact(item.title, item.summary || ''),
-          relevantTickers: [],
-          url: item.url
-        }));
+
+      // If no finance-related news found, fetch general business news
+      if (newsItems.length === 0) {
+        return await fetchGeneralBusinessNews(apiKey);
       }
+
+      // Sort by timestamp (newest first) and limit to 20 items
+      return newsItems
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        .slice(0, 20);
     }
     
-    // If all else fails, return some sample news with current timestamp
     return generateSampleNews();
   } catch (error) {
-    console.error('Fallback news fetch failed:', error);
+    console.error('Error fetching from The News API:', error.message);
     return generateSampleNews();
   }
+};
+
+// Fetch general business news if no finance-specific news found
+const fetchGeneralBusinessNews = async (apiKey) => {
+  try {
+    const response = await axios.get('https://api.thenewsapi.com/v1/news/all', {
+      params: {
+        api_token: apiKey,
+        language: 'en',
+        search: 'finance OR stock OR market OR trading OR economy',
+        limit: 20
+      },
+      timeout: 10000
+    });
+
+    if (response.data && response.data.data) {
+      return response.data.data.map((article, index) => ({
+        id: article.uuid || `business_${index}`,
+        title: article.title,
+        summary: article.description || article.snippet || article.title.substring(0, 150) + '...',
+        source: article.source || 'The News API',
+        timestamp: formatTimestamp(article.published_at),
+        category: 'Business',
+        sentiment: analyzeSentiment(article.title, article.description || ''),
+        impact: determineImpact(article.title, article.description || ''),
+        relevantTickers: extractTickers(article.title, article.description || ''),
+        url: article.url
+      }));
+    }
+    
+    return generateSampleNews();
+  } catch (error) {
+    console.error('Error fetching general business news:', error.message);
+    return generateSampleNews();
+  }
+};
+
+// Helper function to check if news is finance-related
+const isFinancialNews = (title, description) => {
+  const financeKeywords = [
+    'stock', 'market', 'trading', 'finance', 'economy', 'investment', 'earnings',
+    'revenue', 'profit', 'loss', 'nasdaq', 'dow', 's&p', 'fed', 'federal reserve',
+    'inflation', 'gdp', 'unemployment', 'interest rate', 'bond', 'commodity',
+    'crypto', 'bitcoin', 'ethereum', 'ipo', 'merger', 'acquisition', 'dividend'
+  ];
+  
+  const text = (title + ' ' + (description || '')).toLowerCase();
+  return financeKeywords.some(keyword => text.includes(keyword));
+};
+
+// Helper function to map categories
+const mapCategory = (category) => {
+  const categoryMap = {
+    'business': 'Business',
+    'finance': 'Finance',
+    'technology': 'Technology',
+    'general': 'Market News',
+    'science': 'Technology',
+    'politics': 'Politics'
+  };
+  
+  return categoryMap[category.toLowerCase()] || 'Market News';
+};
+
+// Helper function to format timestamp
+const formatTimestamp = (timestamp) => {
+  if (!timestamp) return new Date().toLocaleString();
+  
+  try {
+    return new Date(timestamp).toLocaleString();
+  } catch (error) {
+    return new Date().toLocaleString();
+  }
+};
+
+// Helper function to extract stock tickers from text
+const extractTickers = (title, description) => {
+  const text = (title + ' ' + description).toUpperCase();
+  const tickerPattern = /\b[A-Z]{1,5}\b/g;
+  const commonTickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'META', 'NVDA', 'SPY', 'QQQ'];
+  
+  const matches = text.match(tickerPattern) || [];
+  return matches.filter(ticker => 
+    commonTickers.includes(ticker) || 
+    (ticker.length >= 2 && ticker.length <= 5)
+  ).slice(0, 3); // Limit to 3 tickers
 };
 
 // Generate sample news as last resort
 const generateSampleNews = () => {
   const sampleNews = [
     {
-      title: "Market Update: Major Indices Show Mixed Performance",
-      summary: "Stock markets display varied performance as investors weigh economic indicators and corporate earnings reports.",
-      category: "Market Update",
-      relevantTickers: ["SPY", "QQQ", "DIA"]
-    },
-    {
-      title: "Tech Sector Leads Market Gains Amid AI Optimism",
-      summary: "Technology stocks surge as artificial intelligence developments continue to drive investor enthusiasm.",
-      category: "Technology",
-      relevantTickers: ["AAPL", "MSFT", "GOOGL"]
-    },
-    {
-      title: "Federal Reserve Policy Decision Awaited by Markets",
-      summary: "Investors closely monitor Federal Reserve communications for signals about future monetary policy direction.",
-      category: "Monetary Policy",
-      relevantTickers: ["TLT", "SPY", "GLD"]
+      title: "August Gains Tempered by Technology Weakness and Policy Uncertainty",
+      summary: "Market analysis reveals mixed performance in August as technology sector weakness and policy uncertainty offset earlier gains, creating volatility in major indices.",
+      category: "Market Analysis",
+      relevantTickers: ["SPY", "QQQ", "AAPL", "MSFT", "GOOGL"],
+      url: "https://moneybase.com/blog/news/august-gains-tempered-by-technology-weakness-and-policy-uncertainty"
     }
   ];
   
@@ -160,13 +238,13 @@ const generateSampleNews = () => {
     id: index + 1,
     title: item.title,
     summary: item.summary,
-    source: "Market Wire",
+    source: item.url ? "Moneybase" : "Market Wire",
     timestamp: new Date(Date.now() - Math.random() * 3600000).toLocaleString(),
     category: item.category,
     sentiment: analyzeSentiment(item.title, item.summary),
     impact: determineImpact(item.title, item.summary),
     relevantTickers: item.relevantTickers,
-    url: "#"
+    url: item.url || "#"
   }));
 };
 

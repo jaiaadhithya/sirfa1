@@ -1,73 +1,135 @@
-# Welcome to your Lovable project
+# SIRFA Agent Finance 🚀
 
-## Project info
+**AI-Powered Trading Platform for Alibaba Cloud UAE Hackathon 2025**
 
-**URL**: https://lovable.dev/projects/4f917243-40b7-4c3a-aa83-8414d02d2b1e
+SIRFA (Smart Investment & Risk Finance Agent) is a comprehensive AI-powered trading platform that combines real-time market data, intelligent trading decisions, and advanced portfolio management.
 
-## How can I edit this code?
+## 🌟 Key Features
 
-There are several ways of editing your application.
+- **AI Trading Agent**: Powered by Alibaba Cloud PAI EAS with QWEN models
+- **Real-time Market Data**: Live portfolio tracking and market analysis
+- **News Integration**: Financial news powered by The News API
+- **Paper Trading**: Safe trading environment using Alpaca Markets
+- **WebSocket Communication**: Real-time updates and notifications
+- **Modern UI**: React 18 + Vite with Tailwind CSS
 
-**Use Lovable**
+## 📰 News Integration - The News API
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/4f917243-40b7-4c3a-aa83-8414d02d2b1e) and start prompting.
+We've integrated **The News API** as our primary news source, providing:
 
-Changes made via Lovable will be committed automatically to this repo.
+- ✅ **Global Coverage**: Over 1 million articles weekly
+- ✅ **Fast Performance**: Optimized response times
+- ✅ **Smart Filtering**: Automatic financial news detection
+- ✅ **Free Tier**: Get started without cost
+- ✅ **Reliable Service**: Dedicated news API platform
 
-**Use your preferred IDE**
+### Quick Setup
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+1. **Get API Key**: Sign up at [The News API](https://www.thenewsapi.com/)
+2. **Configure**: Add `THE_NEWS_API_KEY=your_key` to `backend/.env`
+3. **Restart**: Restart the backend server
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+See [THE_NEWS_API_SETUP.md](./THE_NEWS_API_SETUP.md) for detailed setup instructions.
 
-Follow these steps:
+## 🚀 Quick Start
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Prerequisites
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- Node.js 18+ and npm
+- API keys for trading and news services
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Installation
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+# Clone the repository
+git clone <repository-url>
+cd sirfa-agent-finance
+
+# Install dependencies
+npm install
+
+# Setup environment variables
+cp backend/.env.example backend/.env
+# Edit backend/.env with your API keys
+
+# Start the application
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 🏗️ Project Structure
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```
+sirfa-agent-finance/
+├── frontend/          # React 18 + Vite frontend
+├── backend/           # Node.js Express API server
+├── docs/             # Documentation
+└── deployment/       # Deployment configurations
+```
 
-**Use GitHub Codespaces**
+## 🛠️ Technology Stack
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Frontend
+- **React 18** with Vite for fast development
+- **Tailwind CSS** for modern styling
+- **Recharts** for data visualization
+- **WebSocket** for real-time updates
 
-## What technologies are used for this project?
+### Backend
+- **Node.js** with Express framework
+- **The News API** for financial news
+- **Alpaca Markets API** for paper trading
+- **WebSocket** server for real-time communication
+- **Alibaba Cloud PAI EAS** for AI services
 
-This project is built with:
+### AI & Cloud Services
+- **Alibaba Cloud PAI EAS** with QWEN models
+- **Model Studio API** for AI trading decisions
+- **Function Compute** for serverless functions
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🌐 API Endpoints
 
-## How can I deploy this project?
+- `GET /api/news` - Financial news from The News API
+- `GET /api/portfolio` - Portfolio data and performance
+- `POST /api/trading/buy` - Execute buy orders
+- `POST /api/trading/sell` - Execute sell orders
+- `GET /api/charts/:symbol` - Market data and charts
+- `GET /api/alerts` - Trading alerts and notifications
 
-Simply open [Lovable](https://lovable.dev/projects/4f917243-40b7-4c3a-aa83-8414d02d2b1e) and click on Share -> Publish.
+## 📋 Environment Variables
 
-## Can I connect a custom domain to my Lovable project?
+### Required
+- `THE_NEWS_API_KEY` - Primary news source
+- `ALPACA_API_KEY` - Trading API access
+- `ALPACA_SECRET_KEY` - Trading API secret
+- `PAI_EAS_ENDPOINT` - Alibaba Cloud AI endpoint
+- `PAI_EAS_TOKEN` - AI service authentication
 
-Yes, you can!
+### Optional (Legacy)
+- `ALPHA_VANTAGE_API_KEY` - Fallback news source
+- `FINNHUB_API_KEY` - Alternative market data
+- `NEWS_API_KEY` - Legacy news service
+- `POLYGON_API_KEY` - Additional market data
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🚀 Deployment
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+For production deployment on Alibaba Cloud, see:
+- [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)
+- [THE_NEWS_API_SETUP.md](./THE_NEWS_API_SETUP.md)
+
+## 🏆 Hackathon Features
+
+- **AI-Powered Trading**: Intelligent buy/sell decisions
+- **Real-time News**: Financial news integration
+- **Portfolio Management**: Track performance and allocation
+- **Risk Assessment**: AI-driven risk analysis
+- **Modern UI/UX**: Responsive and intuitive design
+
+## 📄 License
+
+Built for Alibaba Cloud UAE Hackathon 2025
+
+---
+
+**🎯 Ready to revolutionize trading with AI? Get started with SIRFA today!**
+
+For questions or support, check our documentation or deployment guides.

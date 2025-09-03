@@ -10,221 +10,111 @@ const NewsPlugin = ({ onNewsUpdate, selectedSymbols = [] }) => {
   const [lastRefresh, setLastRefresh] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // News sources configuration
+  // News sources configuration - now using our backend
   const newsSources = [
     {
       id: 'all',
-      name: 'All Sources',
+      name: 'The News API',
       icon: '🌐',
-      description: 'Aggregated news from multiple sources'
-    },
-    {
-      id: 'alpha_vantage',
-      name: 'Alpha Vantage',
-      icon: '📊',
-      description: 'Market news and analysis',
-      apiKey: import.meta.env.REACT_APP_ALPHA_VANTAGE_API_KEY
-    },
-    {
-      id: 'finnhub',
-      name: 'Finnhub',
-      icon: '📈',
-      description: 'Real-time financial news',
-      apiKey: import.meta.env.REACT_APP_FINNHUB_API_KEY
-    },
-    {
-      id: 'newsapi',
-      name: 'NewsAPI',
-      icon: '📰',
-      description: 'General financial news',
-      apiKey: import.meta.env.REACT_APP_NEWS_API_KEY
-    },
-    {
-      id: 'polygon',
-      name: 'Polygon.io',
-      icon: '🔷',
-      description: 'Market data and news',
-      apiKey: import.meta.env.REACT_APP_POLYGON_API_KEY
+      description: 'Financial news powered by The News API'
     }
   ];
 
-  // Fetch news from Alpha Vantage
-  const fetchAlphaVantageNews = async () => {
-    const apiKey = newsSources.find(s => s.id === 'alpha_vantage')?.apiKey;
-    if (!apiKey || apiKey === 'your_alpha_vantage_key_here') return [];
-
+  // Fetch news from our backend API (The News API)
+  const fetchBackendNews = async () => {
     try {
-      const response = await fetch(
-        `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&apikey=${apiKey}&limit=50`
-      );
+      const response = await fetch('/api/news');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
       
-      return (data.feed || []).map(article => ({
-        id: `av_${article.url}`,
-        title: article.title,
-        summary: article.summary,
-        url: article.url,
-        source: 'Alpha Vantage',
-        publishedAt: article.time_published,
-        sentiment: article.overall_sentiment_label,
-        sentimentScore: article.overall_sentiment_score,
-        symbols: article.ticker_sentiment?.map(t => t.ticker) || [],
-        category: 'market',
-        imageUrl: article.banner_image
-      }));
-    } catch (error) {
-      console.error('Error fetching Alpha Vantage news:', error);
-      return [];
-    }
-  };
-
-  // Fetch news from Finnhub
-  const fetchFinnhubNews = async () => {
-    const apiKey = newsSources.find(s => s.id === 'finnhub')?.apiKey;
-    if (!apiKey || apiKey === 'your_finnhub_key_here') return [];
-
-    try {
-      const response = await fetch(
-        `https://finnhub.io/api/v1/news?category=general&token=${apiKey}`
-      );
-      const data = await response.json();
-      
+      // Transform backend data to match our component format
       return data.map(article => ({
-        id: `fh_${article.id}`,
-        title: article.headline,
+        id: article.id,
+        title: article.title,
         summary: article.summary,
         url: article.url,
-        source: 'Finnhub',
-        publishedAt: new Date(article.datetime * 1000).toISOString(),
-        category: article.category || 'general',
-        imageUrl: article.image,
-        symbols: article.related ? [article.related] : []
+        source: article.source,
+        publishedAt: article.timestamp,
+        sentiment: article.sentiment,
+        sentimentScore: article.sentimentScore || 0,
+        symbols: article.relevantTickers || [],
+        category: article.category,
+        imageUrl: article.imageUrl,
+        impact: article.impact
       }));
     } catch (error) {
-      console.error('Error fetching Finnhub news:', error);
+      console.error('Error fetching backend news:', error);
       return [];
     }
   };
 
-  // Fetch news from NewsAPI
+  // Legacy function - kept for compatibility but not used
+  const fetchFinnhubNews = async () => {
+    // This function is no longer used as we fetch from our backend
+    return [];
+  };
+
+  // Legacy function - kept for compatibility but not used
   const fetchNewsAPI = async () => {
-    const apiKey = newsSources.find(s => s.id === 'newsapi')?.apiKey;
-    if (!apiKey || apiKey === 'your_news_api_key_here') return [];
-
-    try {
-      const query = searchQuery || 'finance OR stock market OR trading';
-      const response = await fetch(
-        `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&sortBy=publishedAt&language=en&apiKey=${apiKey}`
-      );
-      const data = await response.json();
-      
-      return (data.articles || []).map(article => ({
-        id: `na_${article.url}`,
-        title: article.title,
-        summary: article.description,
-        url: article.url,
-        source: article.source.name,
-        publishedAt: article.publishedAt,
-        category: 'general',
-        imageUrl: article.urlToImage,
-        symbols: []
-      }));
-    } catch (error) {
-      console.error('Error fetching NewsAPI:', error);
-      return [];
-    }
+    // This function is no longer used as we fetch from our backend
+    return [];
   };
 
-  // Fetch news from Polygon.io
+  // Legacy function - kept for compatibility but not used
   const fetchPolygonNews = async () => {
-    const apiKey = newsSources.find(s => s.id === 'polygon')?.apiKey;
-    if (!apiKey || apiKey === 'your_polygon_key_here') return [];
-
-    try {
-      const response = await fetch(
-        `https://api.polygon.io/v2/reference/news?apikey=${apiKey}&limit=50`
-      );
-      const data = await response.json();
-      
-      return (data.results || []).map(article => ({
-        id: `pg_${article.id}`,
-        title: article.title,
-        summary: article.description,
-        url: article.article_url,
-        source: 'Polygon.io',
-        publishedAt: article.published_utc,
-        category: 'market',
-        imageUrl: article.image_url,
-        symbols: article.tickers || []
-      }));
-    } catch (error) {
-      console.error('Error fetching Polygon news:', error);
-      return [];
-    }
+    // This function is no longer used as we fetch from our backend
+    return [];
   };
 
-  // Check if any API keys are configured
+  // Check if backend is available
   const hasValidApiKeys = () => {
-    return newsSources.some(source => {
-      if (source.id === 'all') return false;
-      const key = source.apiKey;
-      return key && !key.includes('your_') && !key.includes('_key_here');
-    });
+    // Always return true since we use our backend API
+    return true;
   };
 
-  // Aggregate news from all sources
+  // Fetch news from our backend
   const fetchAllNews = async () => {
     setLoading(true);
     setError(null);
     
-    // Check if any API keys are configured
-    if (!hasValidApiKeys()) {
-      setError('No API keys configured. Please add your API keys to the .env file to fetch news.');
-      setLoading(false);
-      return;
-    }
-    
     try {
-      const newsPromises = [];
+      // Fetch news from our backend API (The News API)
+      const newsData = await fetchBackendNews();
       
-      if (selectedSource === 'all' || selectedSource === 'alpha_vantage') {
-        newsPromises.push(fetchAlphaVantageNews());
-      }
-      if (selectedSource === 'all' || selectedSource === 'finnhub') {
-        newsPromises.push(fetchFinnhubNews());
-      }
-      if (selectedSource === 'all' || selectedSource === 'newsapi') {
-        newsPromises.push(fetchNewsAPI());
-      }
-      if (selectedSource === 'all' || selectedSource === 'polygon') {
-        newsPromises.push(fetchPolygonNews());
-      }
-      
-      const results = await Promise.allSettled(newsPromises);
-      const allNews = results
-        .filter(result => result.status === 'fulfilled')
-        .flatMap(result => result.value)
-        .filter(article => article && article.title)
-        .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
-      
-      // Remove duplicates based on title similarity
-      const uniqueNews = allNews.filter((article, index, arr) => 
-        arr.findIndex(a => 
-          a.title.toLowerCase().trim() === article.title.toLowerCase().trim()
-        ) === index
+      // Filter by search query if provided
+      const filteredNews = searchQuery 
+        ? newsData.filter(article => 
+            article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            article.summary?.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        : newsData;
+
+      // Filter by selected symbols if provided
+      const symbolFilteredNews = selectedSymbols.length > 0
+        ? filteredNews.filter(article => 
+            article.symbols?.some(symbol => 
+              selectedSymbols.includes(symbol.toUpperCase())
+            )
+          )
+        : filteredNews;
+
+      // Sort by published date (newest first)
+      const sortedNews = symbolFilteredNews.sort((a, b) => 
+        new Date(b.publishedAt) - new Date(a.publishedAt)
       );
-      
-      setNews(uniqueNews);
+
+      setNews(sortedNews);
       setLastRefresh(new Date());
       
       // Notify parent component
       if (onNewsUpdate) {
-        onNewsUpdate(uniqueNews);
+        onNewsUpdate(sortedNews);
       }
-      
     } catch (error) {
       console.error('Error fetching news:', error);
-      setError('Failed to fetch news. Please try again.');
+      setError('Failed to fetch news. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -301,17 +191,9 @@ const NewsPlugin = ({ onNewsUpdate, selectedSymbols = [] }) => {
           <label className="block text-sm font-medium text-slate-300 mb-2">
             News Source
           </label>
-          <select
-            value={selectedSource}
-            onChange={(e) => setSelectedSource(e.target.value)}
-            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-          >
-            {newsSources.map(source => (
-              <option key={source.id} value={source.id}>
-                {source.icon} {source.name}
-              </option>
-            ))}
-          </select>
+          <div className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 text-white">
+            🌐 The News API
+          </div>
         </div>
 
         {/* Search Query */}
