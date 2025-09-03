@@ -23,7 +23,8 @@ import {
   Bot,
   DollarSign,
   Brain,
-  RefreshCw
+  RefreshCw,
+  User
 } from 'lucide-react';
 
 function App() {
@@ -109,15 +110,9 @@ function App() {
           </h1>
         </div>
         <div className="header-right">
-          <div className={`connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
-            <div className="status-indicator"></div>
-            <span>{connectionStatus}</span>
-            {!isConnected && (
-              <button onClick={reconnect} className="reconnect-btn">
-                <RefreshCw size={14} />
-              </button>
-            )}
-          </div>
+          <button className="profile-btn">
+            <User size={20} />
+          </button>
         </div>
       </header>
 
