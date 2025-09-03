@@ -18,12 +18,19 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        // Financial Variants
+        financial: "gradient-primary text-primary-foreground shadow-financial hover:shadow-glow transition-smooth",
+        success: "gradient-success text-success-foreground shadow-md hover:shadow-lg transition-smooth",
+        danger: "bg-danger text-danger-foreground hover:bg-danger/90 transition-smooth",
+        agent: "gradient-card border border-border hover:shadow-financial transition-smooth text-card-foreground",
+        premium: "gradient-hero text-primary-foreground shadow-glow hover:scale-105 transition-bounce",
       },
       size: {
         default: "h-10 px-4 py-2",
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",
+        financial: "h-12 px-6 text-base font-semibold",
       },
     },
     defaultVariants: {
