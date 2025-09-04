@@ -5,14 +5,14 @@
   "installCommand": "npm install && cd frontend && npm install && cd ../backend && npm install",
   "devCommand": "cd frontend && npm run dev",
   "functions": {
-    "backend/server.js": {
+    "api/[...path].js": {
       "maxDuration": 30
     }
   },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/backend/server.js"
+      "destination": "/api/[...path]"
     }
   ],
   "env": {
