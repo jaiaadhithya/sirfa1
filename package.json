@@ -28,7 +28,7 @@
     "deploy:netlify": "cd frontend && netlify deploy --prod --dir=dist",
     "deploy:heroku": "git push heroku main",
     "health-check": "cd backend && node healthcheck.js",
-    "postinstall": "npm run install:all"
+    
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
