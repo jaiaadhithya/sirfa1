@@ -27,8 +27,7 @@
     "deploy:vercel": "cd frontend && vercel --prod",
     "deploy:netlify": "cd frontend && netlify deploy --prod --dir=dist",
     "deploy:heroku": "git push heroku main",
-    "health-check": "cd backend && node healthcheck.js",
-    
+    "health-check": "cd backend && node healthcheck.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
