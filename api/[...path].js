@@ -4,16 +4,34 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
-// Import route handlers from backend
-const portfolioRoutes = require('../backend/routes/portfolio');
-const newsRoutes = require('../backend/routes/news');
-const tradingRoutes = require('../backend/routes/trading');
-const agentRoutes = require('../backend/routes/agent');
-const aiAgentsRoutes = require('../backend/routes/agents');
-const chartsRoutes = require('../backend/routes/charts');
-const alertsRoutes = require('../backend/routes/alerts');
-const healthRoutes = require('../backend/routes/health');
-const voiceRoutes = require('../backend/routes/voice');
+// Import route handlers from backend with error handling
+let portfolioRoutes, newsRoutes, tradingRoutes, agentRoutes, aiAgentsRoutes, chartsRoutes, alertsRoutes, healthRoutes, voiceRoutes;
+
+try {
+  portfolioRoutes = require('../backend/routes/portfolio');
+  newsRoutes = require('../backend/routes/news');
+  tradingRoutes = require('../backend/routes/trading');
+  agentRoutes = require('../backend/routes/agent');
+  aiAgentsRoutes = require('../backend/routes/agents');
+  chartsRoutes = require('../backend/routes/charts');
+  alertsRoutes = require('../backend/routes/alerts');
+  healthRoutes = require('../backend/routes/health');
+  voiceRoutes = require('../backend/routes/voice');
+} catch (error) {
+  console.error('Error importing backend routes:', error.message);
+  // Create fallback routes
+  const fallbackRouter = express.Router();
+  fallbackRouter.use('*', (req, res) => {
+    res.status(503).json({
+      success: false,
+      error: 'Service temporarily unavailable',
+      message: 'Backend services are initializing'
+    });
+  });
+  
+  portfolioRoutes = newsRoutes = tradingRoutes = agentRoutes = aiAgentsRoutes = 
+  chartsRoutes = alertsRoutes = healthRoutes = voiceRoutes = fallbackRouter;
+}
 
 const app = express();
 
