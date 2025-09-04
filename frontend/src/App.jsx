@@ -10,6 +10,7 @@ import MarketData from './components/MarketData';
 import AlertsPanel from './components/AlertsPanel';
 import Charts from './components/Charts';
 import AIAgents from './components/AIAgents';
+import VoiceChat from './components/VoiceChat';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -24,7 +25,8 @@ import {
   DollarSign,
   Brain,
   RefreshCw,
-  User
+  User,
+  Mic
 } from 'lucide-react';
 
 function App() {
@@ -68,6 +70,7 @@ function App() {
   const tabs = [
     { id: 'dashboard', label: 'Trading Dashboard', icon: BarChart3 },
     { id: 'agents', label: 'AI Agents', icon: Bot },
+    { id: 'voice', label: 'Voice Chat', icon: Mic },
     { id: 'portfolio', label: 'Portfolio', icon: Wallet },
     { id: 'charts', label: 'Charts', icon: TrendingUp },
     { id: 'market', label: 'Market Data', icon: Activity },
@@ -82,9 +85,10 @@ function App() {
         return <AlertsPanel />;
       case 'dashboard':
         return <TradingDashboard />;
-
       case 'agents':
         return <AIAgents />;
+      case 'voice':
+        return <VoiceChat />;
       case 'charts':
         return <Charts />;
       case 'market':

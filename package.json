@@ -16,7 +16,19 @@
     "deploy:alibaba": "bash deploy-alibaba-cloud.sh",
     "deploy:alibaba:windows": "powershell -ExecutionPolicy Bypass -File deploy-alibaba-cloud.ps1",
     "test": "cd backend && npm test",
-    "start:prod": "cd backend && npm start"
+    "start:prod": "cd backend && npm start",
+    "start": "concurrently \"cd frontend && npm run dev\" \"cd backend && npm start\"",
+    "start:dev": "concurrently \"cd frontend && npm run dev\" \"cd backend && npm run dev\"",
+    "clean": "rm -rf node_modules frontend/node_modules backend/node_modules frontend/dist backend/dist",
+    "clean:windows": "rmdir /s /q node_modules frontend\\node_modules backend\\node_modules frontend\\dist backend\\dist",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "deploy:vercel": "cd frontend && vercel --prod",
+    "deploy:netlify": "cd frontend && netlify deploy --prod --dir=dist",
+    "deploy:heroku": "git push heroku main",
+    "health-check": "cd backend && node healthcheck.js",
+    "postinstall": "npm run install:all"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -77,15 +89,50 @@
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react-swc": "^3.11.0",
     "autoprefixer": "^10.4.21",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^15.15.0",
     "lovable-tagger": "^1.1.9",
+    "netlify-cli": "^17.15.4",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
+    "vercel": "^33.5.4",
     "vite": "^5.4.19"
-  }
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sirfa/agent-finance.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sirfa/agent-finance/issues"
+  },
+  "homepage": "https://sirfa-agent-finance.com",
+  "keywords": [
+    "react",
+    "trading",
+    "finance",
+    "ai",
+    "alibaba-cloud",
+    "websocket",
+    "real-time",
+    "portfolio",
+    "alpaca",
+    "yahoo-finance",
+    "hackathon",
+    "typescript",
+    "vite",
+    "express",
+    "nodejs"
+  ],
+  "author": "SIRFA Team",
+  "license": "MIT"
 }
