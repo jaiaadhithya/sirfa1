@@ -1,0 +1,104 @@
+# Production Dockerfile for SIRFA Agent Finance - Alibaba Cloud ECS
+# Multi-stage build optimized for production deployment
+
+# Stage 1: Build frontend
+FROM node:18-alpine AS frontend-builder
+
+# Set working directory
+WORKDIR /app/frontend
+
+# Install dependencies for native modules
+RUN apk add --no-cache python3 make g++
+
+# Copy package files first for better caching
+COPY frontend/package*.json ./
+
+# Install dependencies with npm ci for faster, reliable builds
+RUN npm ci --only=production --no-audit --no-fund
+
+# Copy source code
+COPY frontend/ ./
+
+# Build frontend for production
+RUN npm run build
+
+# Stage 2: Setup backend
+FROM node:18-alpine AS backend-builder
+
+# Set working directory
+WORKDIR /app/backend
+
+# Install dependencies for native modules
+RUN apk add --no-cache python3 make g++
+
+# Copy package files first for better caching
+COPY backend/package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production --no-audit --no-fund
+
+# Copy backend source code
+COPY backend/ ./
+
+# Stage 3: Final production image
+FROM node:18-alpine AS production
+
+# Install system dependencies
+RUN apk add --no-cache \
+    dumb-init \
+    curl \
+    ca-certificates \
+    tzdata
+
+# Set timezone to UTC
+ENV TZ=UTC
+
+# Create app directory
+WORKDIR /app
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S sirfa -u 1001 -G nodejs
+
+# Copy built frontend from frontend-builder stage
+COPY --from=frontend-builder --chown=sirfa:nodejs /app/frontend/dist ./frontend/dist
+
+# Copy backend from backend-builder stage
+COPY --from=backend-builder --chown=sirfa:nodejs /app/backend ./backend
+
+# Copy root package.json and configuration files
+COPY --chown=sirfa:nodejs package*.json ./
+COPY --chown=sirfa:nodejs .env.docker ./.env
+
+# Install root dependencies
+RUN npm ci --only=production --no-audit --no-fund && \
+    npm cache clean --force
+
+# Set production environment variables
+ENV NODE_ENV=production
+ENV PORT=3001
+ENV WS_PORT=8080
+ENV FRONTEND_PORT=3000
+
+# Expose ports
+EXPOSE 3001 8080
+
+# Switch to non-root user
+USER sirfa
+
+# Health check with proper timeout
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:3001/health || exit 1
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the application
+CMD ["node", "backend/server.js"]
+
+# Labels for better container management
+LABEL maintainer="SIRFA Team" \
+      version="1.0.0" \
+      description="SIRFA Agent Finance - AI Trading Platform" \
+      cloud.provider="alibaba" \
+      deployment.target="ecs"

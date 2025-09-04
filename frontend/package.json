@@ -90,7 +90,6 @@
     "prettier": "^3.1.0",
     "surge": "^0.23.1",
     "tailwindcss": "^3.4.17",
-    "terser": "^5.44.0",
     "typescript": "^5.8.3",
     "vercel": "^33.5.4",
     "vite": "^5.4.19",

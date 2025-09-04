@@ -1,0 +1,90 @@
+{
+  "melvin-arck": {
+    "agentName": "Melvin Arck",
+    "totalDecisions": 1,
+    "successfulTrades": 0,
+    "failedTrades": 0,
+    "totalReturn": 0,
+    "totalRisk": 0,
+    "decisions": [
+      {
+        "id": "melvin-arck_1756902605862_n2brt21p2",
+        "timestamp": "2025-09-03T12:30:05.862Z",
+        "sessionId": null,
+        "decision": {
+          "action": "HOLD",
+          "symbol": null,
+          "quantity": null
+        },
+        "portfolioSnapshot": {
+          "totalValue": 10000,
+          "dayChange": 0,
+          "buyingPower": 5000
+        },
+        "outcome": null,
+        "performance": null
+      }
+    ],
+    "dailyPerformance": {
+      "2025-09-03": {
+        "decisions": 1,
+        "trades": 0,
+        "return": 0,
+        "risk": 0
+      }
+    },
+    "monthlyPerformance": {},
+    "riskMetrics": {
+      "sharpeRatio": 0,
+      "maxDrawdown": 0,
+      "volatility": 0,
+      "winRate": 0
+    },
+    "createdAt": "2025-09-03T12:30:05.862Z",
+    "updatedAt": "2025-09-03T12:30:05.862Z"
+  },
+  "wharton-buffest": {
+    "agentName": "Wharton Buffest",
+    "totalDecisions": 1,
+    "successfulTrades": 0,
+    "failedTrades": 0,
+    "totalReturn": 0,
+    "totalRisk": 0,
+    "decisions": [
+      {
+        "id": "wharton-buffest_1756902626520_29mtzwys3",
+        "timestamp": "2025-09-03T12:30:26.520Z",
+        "sessionId": null,
+        "decision": {
+          "action": "HOLD",
+          "symbol": null,
+          "quantity": null
+        },
+        "portfolioSnapshot": {
+          "totalValue": 10000,
+          "dayChange": 0,
+          "buyingPower": 5000
+        },
+        "outcome": null,
+        "performance": null
+      }
+    ],
+    "dailyPerformance": {
+      "2025-09-03": {
+        "decisions": 1,
+        "trades": 0,
+        "return": 0,
+        "risk": 0
+      }
+    },
+    "monthlyPerformance": {},
+    "riskMetrics": {
+      "sharpeRatio": 0,
+      "maxDrawdown": 0,
+      "volatility": 0,
+      "winRate": 0
+    },
+    "createdAt": "2025-09-03T12:30:26.520Z",
+    "updatedAt": "2025-09-03T12:30:26.520Z"
+  }
+}

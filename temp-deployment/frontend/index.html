@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SIRFA Agent Finance - AI-Powered Trading Platform with Real-time Market Data and Automated Trading Decisions" />
+    <meta name="keywords" content="trading, finance, AI, real-time, portfolio, market data, Alibaba Cloud, WebSocket" />
+    <meta name="author" content="SIRFA Team" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://sirfa-agent-finance.com/" />
+    <meta property="og:title" content="SIRFA Agent Finance - AI-Powered Trading Platform" />
+    <meta property="og:description" content="Advanced trading platform with AI-powered decisions, real-time market data, and automated portfolio management." />
+    <meta property="og:image" content="/og-image.png" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://sirfa-agent-finance.com/" />
+    <meta property="twitter:title" content="SIRFA Agent Finance - AI-Powered Trading Platform" />
+    <meta property="twitter:description" content="Advanced trading platform with AI-powered decisions, real-time market data, and automated portfolio management." />
+    <meta property="twitter:image" content="/twitter-image.png" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#2563eb" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+    
+    <title>Sirfa</title>
+    
+    <!-- Inline Critical CSS for faster loading -->
+    <style>
+      /* Critical CSS for initial page load */
+      * {
+        box-sizing: border-box;
+      }
+      
+      html {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #f3f4f6;
+        color: #111827;
+        line-height: 1.6;
+      }
+      
+      #root {
+        min-height: 100vh;
+      }
+      
+      /* Loading spinner */
+      .loading-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background-color: #f3f4f6;
+      }
+      
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #e5e7eb;
+        border-top: 4px solid #2563eb;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      .loading-text {
+        margin-top: 16px;
+        color: #6b7280;
+        font-size: 14px;
+        text-align: center;
+      }
+      
+      /* Hide loading when app is ready */
+      .app-loaded .loading-container {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loading Screen -->
+    <div class="loading-container" id="loading">
+      <div>
+        <div class="loading-spinner"></div>
+        <div class="loading-text">
+          <div style="font-size: 24px; margin-bottom: 8px;">🤖</div>
+          <div>Loading SIRFA Agent Finance...</div>
+          <div style="font-size: 12px; margin-top: 4px; opacity: 0.7;">AI-Powered Trading Platform</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- React App Root -->
+    <div id="root"></div>
+    
+    <!-- Error Fallback -->
+    <noscript>
+      <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        <div style="text-align: center; padding: 32px; background: white; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-width: 400px;">
+          <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+          <h1 style="color: #111827; margin-bottom: 16px;">JavaScript Required</h1>
+          <p style="color: #6b7280; margin-bottom: 24px;">SIRFA Agent Finance requires JavaScript to run. Please enable JavaScript in your browser and refresh the page.</p>
+          <button onclick="window.location.reload()" style="background-color: #2563eb; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Refresh Page</button>
+        </div>
+      </div>
+    </noscript>
+    
+    <!-- Module Script -->
+    <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Hide loading screen when app loads -->
+    <script>
+      // Hide loading screen when React app is ready
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          const loading = document.getElementById('loading');
+          if (loading) {
+            loading.style.opacity = '0';
+            loading.style.transition = 'opacity 0.3s ease-out';
+            setTimeout(function() {
+              loading.style.display = 'none';
+            }, 300);
+          }
+        }, 500); // Small delay to ensure smooth transition
+      });
+      
+      // Error handling for module loading
+      window.addEventListener('error', function(e) {
+        if (e.filename && e.filename.includes('main.jsx')) {
+          const loading = document.getElementById('loading');
+          if (loading) {
+            loading.innerHTML = `
+              <div style="text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
+                <div style="color: #dc2626; font-weight: 600; margin-bottom: 8px;">Failed to Load Application</div>
+                <div style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">There was an error loading the SIRFA Agent Finance application.</div>
+                <button onclick="window.location.reload()" style="background-color: #2563eb; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">Retry</button>
+              </div>
+            `;
+          }
+        }
+      });
+      
+      // Performance monitoring
+      if ('performance' in window) {
+        window.addEventListener('load', function() {
+          setTimeout(function() {
+            const perfData = performance.getEntriesByType('navigation')[0];
+            if (perfData && window.console) {
+              console.log('Page Performance:', {
+                'DOM Content Loaded': Math.round(perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart) + 'ms',
+                'Load Complete': Math.round(perfData.loadEventEnd - perfData.loadEventStart) + 'ms',
+                'Total Time': Math.round(perfData.loadEventEnd - perfData.fetchStart) + 'ms'
+              });
+            }
+          }, 0);
+        });
+      }
+    </script>
+  </body>
+</html>
