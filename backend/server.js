@@ -46,6 +46,7 @@ const aiAgentsRoutes = require('./routes/agents');
 const chartsRoutes = require('./routes/charts');
 const alertsRoutes = require('./routes/alerts');
 const healthRoutes = require('./routes/health');
+const voiceRoutes = require('./routes/voice');
 
 // API Routes
 app.use('/api/portfolio', portfolioRoutes);
@@ -56,6 +57,7 @@ app.use('/api/agents', aiAgentsRoutes);
 app.use('/api/charts', chartsRoutes);
 app.use('/api/alerts', alertsRoutes);
 app.use('/api/health', healthRoutes);
+app.use('/api/voice', voiceRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
